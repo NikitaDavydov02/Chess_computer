@@ -1,0 +1,12 @@
+C:\Users\User\source\repos\Chess\Chess\bin\Debug\Chess.exe.config
+C:\Users\User\source\repos\Chess\Chess\bin\Debug\Chess.exe
+C:\Users\User\source\repos\Chess\Chess\bin\Debug\Chess.pdb
+C:\Users\User\source\repos\Chess\Chess\bin\Debug\MathNet.Numerics.dll
+C:\Users\User\source\repos\Chess\Chess\bin\Debug\System.ValueTuple.dll
+C:\Users\User\source\repos\Chess\Chess\bin\Debug\MathNet.Numerics.xml
+C:\Users\User\source\repos\Chess\Chess\bin\Debug\System.ValueTuple.xml
+C:\Users\User\source\repos\Chess\Chess\obj\Debug\Chess.csproj.AssemblyReference.cache
+C:\Users\User\source\repos\Chess\Chess\obj\Debug\Chess.csproj.CoreCompileInputs.cache
+C:\Users\User\source\repos\Chess\Chess\obj\Debug\Chess.csproj.CopyComplete
+C:\Users\User\source\repos\Chess\Chess\obj\Debug\Chess.exe
+C:\Users\User\source\repos\Chess\Chess\obj\Debug\Chess.pdb
