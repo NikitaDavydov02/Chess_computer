@@ -35,8 +35,8 @@ namespace Chess
             }
             //OutputHumanMove(figure, startField, endField);
             //Check if there is a right figure at the start
-            if (!ChessLibrary.IsThisMovePossible(startField, endField, board, castlingPosibilityFromHistory))
-                return false;
+            //if (!ChessLibrary.IsThisMovePossible(startField, endField, board, castlingPosibilityFromHistory))
+            //    return false;
             board[endField.x, endField.y] = figure;
             board[startField.x, startField.y] = 0;
             if ((figure == 1 && endField.y == 7) || (figure == -1 && endField.y == 0))
@@ -118,14 +118,21 @@ namespace Chess
         {
 
         }
-        public static void CreateNewFigureOnBoardAt(Vector v, bool white, ref int[,]board)
+        public static void CreateNewFigureOnBoardAt(Vector v, bool white, ref int[,]board, bool ask=true)
         {
-            Console.WriteLine("Choose new figure");
-            Console.WriteLine("N - knight");
-            Console.WriteLine("B - bishop");
-            Console.WriteLine("R - rock");
-            Console.WriteLine("Q - queen");
-            string input = Console.ReadLine();
+            string input;
+            if (ask)
+            {
+                Console.WriteLine("Choose new figure");
+                Console.WriteLine("N - knight");
+                Console.WriteLine("B - bishop");
+                Console.WriteLine("R - rock");
+                Console.WriteLine("Q - queen");
+                input = Console.ReadLine();
+            }
+            else
+                input = "Q";
+
             int figure = 2;
             switch (input)
             {

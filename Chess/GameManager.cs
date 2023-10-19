@@ -96,7 +96,7 @@ namespace Chess
             //board[0, 5] = 1;
 
             //board[2, 2] = -9;
-            board = ChessLibrary.ReadPositionFromFile("pos.txt");
+            board = ChessLibrary.ReadPositionFromFile("checkmate3.txt");
             //ChessLibrary.ThereIsNoCheckInThisPosition(false, board);
             ChessLibrary.OutputBoard(board, true);
             if(outputToLog)
@@ -110,7 +110,9 @@ namespace Chess
                     writer.WriteLine("Compters mive");
                 }
               
-                Move computersMove = chessComputer.FindTheBestMoveForPosition(board, whiteToTurn, castlingPosibilityFromHistory);
+                Move computersMove = chessComputer.FindTheBestMoveForPosition(board, whiteToTurn);
+                Console.WriteLine(OutputHumanMove(computersMove));
+
                 ChessLibrary.InputMove(computersMove, board,ref whiteToTurn,ref gameResult,ref castlingPosibilityFromHistory);
             }
         }
@@ -150,7 +152,7 @@ namespace Chess
 
             if (((whiteToTurn && !HumanAsWhite) || (!whiteToTurn && HumanAsWhite)) && GameMode == GameMode.AgainstComputer)
             {
-                Move computersMove = chessComputer.FindTheBestMoveForPosition(board, whiteToTurn,castlingPosibilityFromHistory);
+                Move computersMove = chessComputer.FindTheBestMoveForPosition(board, whiteToTurn);
                 Console.WriteLine(OutputHumanMove(computersMove));
                 ChessLibrary.InputMove(computersMove, board, ref whiteToTurn, ref gameResult, ref castlingPosibilityFromHistory);
                 
@@ -194,6 +196,14 @@ namespace Chess
         {
             return new Vector(a.x + b.x, a.y + b.y);
         }
+        public static int Dot(Vector a, Vector b)
+        {
+            return (a.x*b.x+a.y*b.y);
+        }
+        public static double Cos(Vector a, Vector b)
+        {
+            return (double)((a.x * b.x + a.y * b.y)* (a.x * b.x + a.y * b.y)) /(double)((a.x* a.x+ a.y* a.y) * (b.x * b.x + b.y * b.y));
+        }
     }
     public struct Move
     {
@@ -209,5 +219,12 @@ namespace Chess
     {
         TwoPlayers,
         AgainstComputer,
+    }
+    public enum CheckState
+    {
+        WhiteAreChecked,
+        WhiteAreDoubleChecked,
+        BlackAreChecked,
+        BlackAreDoubleChecked,
     }
 }
