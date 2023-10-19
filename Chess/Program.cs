@@ -30,18 +30,19 @@ namespace Chess
                     humanIsPlayingAsWhite = false;
             }
 
-            GameManager gameManager = new GameManager(gameMode,humanIsPlayingAsWhite); 
+            GameManager gameManager = new GameManager(gameMode,humanIsPlayingAsWhite);
+            Board board = new Board(gameMode, humanIsPlayingAsWhite);
             string inputMove;
-            while (gameManager.GameResult == null)
+            while (board.GameResult == null)
             {
-                if (gameManager.WhiteToTurn)
+                if (board.WhiteToTurn)
                     Console.WriteLine("White to turn");
                 else
                     Console.WriteLine("Black to turn");
                 inputMove = Console.ReadLine();
                 if (inputMove == "l")
                 {
-                    gameManager.Quit();
+                    board.Quit();
                     break;
                 }
                    
@@ -59,12 +60,12 @@ namespace Chess
                 }
                 string startField = inputMoveSplited[0].ToString() + inputMoveSplited[1].ToString();
                 string endField = inputMoveSplited[3].ToString() + inputMoveSplited[4].ToString();
-                gameManager.InputHumanMove(figure, startField, endField);
+                board.InputHumanMove(figure, startField, endField);
             }
             inputMove = Console.ReadLine();
             if (inputMove == "l")
             {
-                gameManager.Quit();
+                board.Quit();
                 
             }
             Console.ReadLine();

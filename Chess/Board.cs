@@ -164,6 +164,7 @@ namespace Chess
                 }
             //if (outputToLog)
             //    ChessLibrary.OutputBoard(board, false);
+            InitialMoveFinding();
             OutputAllPossibleMoves(whiteToTurn);
             if (((whiteToTurn && !HumanAsWhite) || (!whiteToTurn && HumanAsWhite)) && GameMode == GameMode.AgainstComputer)
             {
