@@ -189,7 +189,7 @@ namespace Chess
             Vector trialField = kingPosition;
             for (int i = 0; i < minTranslations.Count; i++)
             {
-                trialField = Vector.Sum(kingPosition, minTranslations[i]);
+                trialField = VectorMath.Sum(kingPosition, minTranslations[i]);
                 int length = 1;
                 while (trialField.x >= 0 && trialField.x < 8 && trialField.y >= 0 && trialField.y < 8)
                 {
@@ -206,7 +206,7 @@ namespace Chess
                     }
                     if (figureAtTrialField != 0)
                         break;
-                    trialField = Vector.Sum(trialField, minTranslations[i]);
+                    trialField = VectorMath.Sum(trialField, minTranslations[i]);
                     length++;
                 }
             }
@@ -222,10 +222,10 @@ namespace Chess
             minTranslations.Add(new Vector(-2, -1));
             foreach (Vector move in minTranslations)
             {
-                trialField = Vector.Sum(kingPosition, move);
+                trialField = VectorMath.Sum(kingPosition, move);
                 if (trialField.x > 7 || trialField.x < 0 || trialField.y > 7 || trialField.y < 0)
                     continue;
-                if (position[trialField.x, trialField.y] * king == -30)
+                if (position[trialField.x, trialField.y] * king == -20)
                     return false;
             }
             //Pawn check
@@ -242,7 +242,7 @@ namespace Chess
             }
             foreach (Vector move in minTranslations)
             {
-                trialField = Vector.Sum(kingPosition, move);
+                trialField = VectorMath.Sum(kingPosition, move);
                 if (trialField.x > 7 || trialField.x < 0 || trialField.y > 7 || trialField.y < 0)
                     continue;
                 if (position[trialField.x, trialField.y] * king == -10)
@@ -260,7 +260,7 @@ namespace Chess
 
             return true;
         }
-        private static bool ThereIsNoCheckAfterThisMove(Move move, int[,] _position)
+        public static bool ThereIsNoCheckAfterThisMove(Move move, int[,] _position)
         {
             bool checkIfWhiteWillBeChecked = true;
             if (_position[move.start.x, move.start.y] < 0)
@@ -418,7 +418,7 @@ namespace Chess
                 Vector trialEnd = start;
                 for (int i = 1; i <= 7; i++)
                 {
-                    trialEnd = Vector.Sum(trialEnd, minTranslation);
+                    trialEnd = VectorMath.Sum(trialEnd, minTranslation);
                     if (trialEnd.x < 0 || trialEnd.x > 7 || trialEnd.y < 0 || trialEnd.y > 7)
                         break;
                     if (position[trialEnd.x, trialEnd.y] * figure == 0)
@@ -480,7 +480,7 @@ namespace Chess
                     possibleTranslations.Add(new Vector(-2, -1));
                     foreach (Vector posibleTranslation in possibleTranslations)
                     {
-                        trialEnd = Vector.Sum(start, posibleTranslation);
+                        trialEnd = VectorMath.Sum(start, posibleTranslation);
                         if (trialEnd.x < 0 || trialEnd.x > 7 || trialEnd.y < 0 || trialEnd.y > 7)
                             continue;
                         if (position[trialEnd.x, trialEnd.y] * figure <= 0)
@@ -519,7 +519,7 @@ namespace Chess
         {
             if (Math.Abs(figure) == 2)
                 return true;
-            Vector move = Vector.Substract(end, start);
+            Vector move = VectorMath.Substract(end, start);
             int absX = Math.Abs(move.x);
             int absY = Math.Abs(move.y);
             int maxDelta = 0;
@@ -528,16 +528,16 @@ namespace Chess
             else
                 maxDelta = absY;
             Vector minTranslation = new Vector(move.x / maxDelta, move.y / maxDelta);
-            Vector trialEnd = Vector.Sum(start, minTranslation);
+            Vector trialEnd = VectorMath.Sum(start, minTranslation);
             for (int i = 1; i < maxDelta; i++)
             {
                 if (position[trialEnd.x, trialEnd.y] != 0)
                     return false;
-                trialEnd = Vector.Sum(trialEnd, minTranslation);
+                trialEnd = VectorMath.Sum(trialEnd, minTranslation);
             }
             if (position[trialEnd.x, trialEnd.y] * figure > 0)
                 return false;
-            if (Math.Abs(figure) == 1 && Vector.Substract(end, start).x == 0 && position[end.x, end.y] != 0)
+            if (Math.Abs(figure) == 1 && VectorMath.Substract(end, start).x == 0 && position[end.x, end.y] != 0)
                 return false;
             return true;
         }
@@ -582,7 +582,7 @@ namespace Chess
         }
         public static MoveType DetermineMoveType(int figure, Vector start, Vector end, int[,] position)
         {
-            Vector move = Vector.Substract(end, start);
+            Vector move = VectorMath.Substract(end, start);
             int absX = Math.Abs(move.x);
             int absY = Math.Abs(move.y);
             MoveType moveType = MoveType.Ordinary;
@@ -597,7 +597,7 @@ namespace Chess
         private static bool IfMoveCanDoneByFigureFormaly(int figure, Vector start, Vector end, int[,] position, bool[] castlingPosibilityFromHistory)
         {
 
-            Vector move = Vector.Substract(end, start);
+            Vector move = VectorMath.Substract(end, start);
             int absX = Math.Abs(move.x);
             int absY = Math.Abs(move.y);
 

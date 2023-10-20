@@ -33,6 +33,7 @@ namespace Chess
         private List<Vector> whiteFiguresPosition;
         private List<Vector> blackFiguresPosition;
 
+
         /*private List<Vector> whiteKnightsPosition;
         private List<Vector> blackKnightsPosition;
 
@@ -42,8 +43,13 @@ namespace Chess
         private Dictionary<Vector, List<Move>> whitePossibleMovesWithoutCheckCheck;
         private Dictionary<Vector, List<Move>> blackPossibleMovesWithoutCheckCheck;
 
-        private Dictionary<Vector, List<Move>> whitePossibleMovesWithCheckCheck;
-        private Dictionary<Vector, List<Move>> blackPossibleMovesWithCheckCheck;
+        private List<Move> whitePossibleMovesWithCheckCheck;
+        private List<Move> blackPossibleMovesWithCheckCheck;
+
+        private List<Vector> checkSourcesForWhite;
+        private List<Vector> checkSourcesForBlack;
+
+        //private Dictionary<Vector, int[]> hitMap;
 
         private CheckState? CheckState=null;
 
@@ -78,8 +84,10 @@ namespace Chess
             gameResult = null;
             whitePossibleMovesWithoutCheckCheck = new Dictionary<Vector, List<Move>>();
             blackPossibleMovesWithoutCheckCheck = new Dictionary<Vector, List<Move>>();
-            whitePossibleMovesWithCheckCheck = new Dictionary<Vector, List<Move>>();
-            blackPossibleMovesWithCheckCheck = new Dictionary<Vector, List<Move>>();
+            whitePossibleMovesWithCheckCheck = new List<Move>();
+            blackPossibleMovesWithCheckCheck = new List<Move>();
+            checkSourcesForWhite = new List<Vector>();
+            checkSourcesForBlack = new List<Vector>();
             minTranslations = new List<Vector>();
             minTranslations.Add(new Vector(0, 1));
             minTranslations.Add(new Vector(0, -1));
@@ -115,8 +123,8 @@ namespace Chess
                     board[i, j] = 0;
                     whitePossibleMovesWithoutCheckCheck.Add(new Vector(i, j), new List<Move>());
                     blackPossibleMovesWithoutCheckCheck.Add(new Vector(i, j), new List<Move>());
-                    whitePossibleMovesWithCheckCheck.Add(new Vector(i, j), new List<Move>());
-                    blackPossibleMovesWithCheckCheck.Add(new Vector(i, j), new List<Move>());
+                    //whitePossibleMovesWithCheckCheck.Add(new Vector(i, j), new List<Move>());
+                    //blackPossibleMovesWithCheckCheck.Add(new Vector(i, j), new List<Move>());
                 }
                     
             board[0, 0] = 5;
@@ -147,8 +155,11 @@ namespace Chess
                 board[i, 1] = 1;
                 board[i, 6] = -1;
             }
-            board = ChessLibrary.ReadPositionFromFile("checkmate3.txt");
+            board = ChessLibrary.ReadPositionFromFile("pos4.txt");
             //ChessLibrary.ThereIsNoCheckInThisPosition(false, board);
+            Console.WriteLine("-----------------------------------");
+            Console.WriteLine("--------------BOARD----------------");
+            Console.WriteLine("-----------------------------------");
             OutputBoard();
             for (int i = 0; i < 8; i++)
                 for (int j = 0; j < 8; j++)
@@ -165,7 +176,10 @@ namespace Chess
             //if (outputToLog)
             //    ChessLibrary.OutputBoard(board, false);
             InitialMoveFinding();
-            OutputAllPossibleMoves(whiteToTurn);
+            //hitMap = new Dictionary<Vector, int[]>();
+            ///UpdateHitmap();
+            OutputAllPossibleMoves(true);
+            OutputAllPossibleMoves(false);
             if (((whiteToTurn && !HumanAsWhite) || (!whiteToTurn && HumanAsWhite)) && GameMode == GameMode.AgainstComputer)
             {
                 if (outputToLog)
@@ -280,9 +294,9 @@ namespace Chess
             //---------------------------------------------//
             ChangeAllFormalyPossibleMovesWithoutCheckCorrectionAfterRecentMove(move, whiteToTurn);
             //Check correction
-            ChangeAllPossibleMovesWithCheckCorrectionAfterRecentMove(move, whiteToTurn);
-            OutputAllPossibleMoves(!whiteToTurn);
-
+            ChangeAllPossibleMovesWithCheckCorrectionAfterRecentMove();
+            OutputAllPossibleMoves(true);
+            OutputAllPossibleMoves(false);
             //MoveType moveType = DetermineMoveType(figure, startField, endField, board);
 
             gameResult = CheckMate(WhiteToTurn);
@@ -294,6 +308,9 @@ namespace Chess
                     Console.WriteLine("White won!");
                 else if (GameResult == Result.BloackWon)
                     Console.WriteLine("Black won!");
+                Console.WriteLine("-----------------------------------");
+                Console.WriteLine("--------------BOARD----------------");
+                Console.WriteLine("-----------------------------------");
                 OutputBoard();
                 return true;
             }
@@ -301,18 +318,86 @@ namespace Chess
                 Console.WriteLine("White are checked");
             if (CheckState == Chess.CheckState.BlackAreChecked || CheckState == Chess.CheckState.BlackAreDoubleChecked)
                 Console.WriteLine("Black are checked");
+            Console.WriteLine("-----------------------------------");
+            Console.WriteLine("--------------BOARD----------------");
+            Console.WriteLine("-----------------------------------");
             OutputBoard();
             whiteToTurn = !whiteToTurn;
 
             return true;
         }
-        private void ChangeAllPossibleMovesWithCheckCorrectionAfterRecentMove(Move move, bool whiteHadMoved)
+        private void ChangeAllPossibleMovesWithCheckCorrectionAfterRecentMove()
         {
-            //TO DO
-            foreach (Vector v in whitePossibleMovesWithCheckCheck.Keys)
-                whitePossibleMovesWithCheckCheck[v] = whitePossibleMovesWithoutCheckCheck[v];
-            foreach (Vector v in blackPossibleMovesWithCheckCheck.Keys)
-                blackPossibleMovesWithCheckCheck[v] = blackPossibleMovesWithoutCheckCheck[v];
+            //TO_DO Include check check when king is going to checked field not pins only. Ch\
+            // Check processing
+            //1. Если не под шахом, то:
+            //Нельзя ходить под шах \/ (учтено при поиске новых ходов)
+            //Нельзя ходить подставляя под шах  \/
+            //2. Если под шахом
+            //+ надо уходить от шаха
+            whitePossibleMovesWithCheckCheck.Clear();
+            foreach (Vector v in whitePossibleMovesWithoutCheckCheck.Keys)
+            {
+                foreach (Move m in whitePossibleMovesWithoutCheckCheck[v])
+                    whitePossibleMovesWithCheckCheck.Add(m);
+            }
+            blackPossibleMovesWithCheckCheck.Clear();
+            foreach (Vector v in blackPossibleMovesWithoutCheckCheck.Keys)
+            {
+                foreach (Move m in blackPossibleMovesWithoutCheckCheck[v])
+                    blackPossibleMovesWithCheckCheck.Add(m);
+            }
+            //Нельзя ходить подставляя под шах  \/
+            ExcludeForbidenMovesForKingsFromPossibleMovesWithCheckCheck();
+            if (CheckState != null)
+            {
+                //Исключение ходов не избавляющих от шаха
+                List<Move> movesToRemove = new List<Move>();
+                //1. Hide
+                //2. Destroy
+                //3. Fence off
+                if (CheckState == Chess.CheckState.WhiteAreChecked || CheckState == Chess.CheckState.WhiteAreDoubleChecked)
+                {
+                    //White are checked
+                    foreach(Move move in whitePossibleMovesWithCheckCheck)
+                    {
+                        bool hide = false;
+                        if (VectorMath.Equal(move.start, whiteKingPosition))
+                            hide = true;
+                        bool destroy = false;
+                        if (VectorMath.Equal(move.end, checkSourcesForWhite[0]) && checkSourcesForWhite.Count == 0)
+                            destroy = true;
+                        bool fenceOff = false;
+                        if (VectorMath.CBetweenAAndB(whiteKingPosition, checkSourcesForWhite[0], move.end) && checkSourcesForWhite.Count == 0)
+                            fenceOff = false;
+                        if (!(hide || destroy || fenceOff))
+                            movesToRemove.Add(move);
+                    }
+                    foreach (Move m in movesToRemove)
+                        whitePossibleMovesWithCheckCheck.Remove(m);
+                }
+                else
+                {
+                    //Black are checked
+                    foreach (Move move in blackPossibleMovesWithCheckCheck)
+                    {
+                        bool hide = false;
+                        if (VectorMath.Equal(move.start, blackKingPosition))
+                            hide = true;
+                        bool destroy = false;
+                        if (VectorMath.Equal(move.end, checkSourcesForBlack[0]) && checkSourcesForBlack.Count == 0)
+                            destroy = true;
+                        bool fenceOff = false;
+                        if (VectorMath.CBetweenAAndB(blackKingPosition, checkSourcesForBlack[0], move.end) && checkSourcesForBlack.Count == 0)
+                            fenceOff = false;
+                        if (!(hide || destroy || fenceOff))
+                            movesToRemove.Add(move);
+                    }
+                    foreach (Move m in movesToRemove)
+                        blackPossibleMovesWithCheckCheck.Remove(m);
+                }
+                
+            }
         }
         private void ChangeAllFormalyPossibleMovesWithoutCheckCorrectionAfterRecentMove(Move move, bool whiteHadMoved)
         {
@@ -337,14 +422,21 @@ namespace Chess
             UpdatePossibleMovesForFiguresThatCouldGoToParticularFieldBeforeRecentMove(move.start, ref newWhitePossibleMoves, ref newBlackPossibleMoves);
             //4. Update moves for figures that could go to end before move (special attention to pawns)
             UpdatePossibleMovesForFiguresThatCouldGoToParticularFieldBeforeRecentMove(move.end, ref newWhitePossibleMoves, ref newBlackPossibleMoves);
-            //Check to check
+            
+            //----------------------------------//
+            //--------Check to check-----------//
+            //----------------------------------//
+            
             CheckState = null;
+            checkSourcesForWhite.Clear();
+            checkSourcesForBlack.Clear();
             if (whiteHadMoved)
             {
                 foreach (List<Move> moves in newWhitePossibleMoves.Values)
                     foreach (Move newMove in moves)
                         if (board[newMove.end.x, newMove.end.y] == -10)
                         {
+                            checkSourcesForBlack.Add(newMove.start);
                             if (CheckState == Chess.CheckState.BlackAreChecked)
                                 CheckState = Chess.CheckState.BlackAreDoubleChecked;
                             else
@@ -357,6 +449,7 @@ namespace Chess
                     foreach (Move newMove in moves)
                         if (board[newMove.end.x, newMove.end.y] == -10)
                         {
+                            checkSourcesForWhite.Add(newMove.start);
                             if (CheckState == Chess.CheckState.WhiteAreChecked)
                                 CheckState = Chess.CheckState.WhiteAreDoubleChecked;
                             else
@@ -369,7 +462,7 @@ namespace Chess
             Vector trialEnd = start;
             foreach (Vector direction in minTranslations)
             {
-                trialEnd = Vector.Sum(start, direction);
+                trialEnd = VectorMath.Sum(start, direction);
                 while (trialEnd.x < 8 && trialEnd.x >= 0 && trialEnd.y < 8 && trialEnd.y >= 0)
                 {
                     if (board[trialEnd.x, trialEnd.y] < 0)
@@ -382,13 +475,13 @@ namespace Chess
                         whitePossibleMovesWithoutCheckCheck[trialEnd] = FindAllFormalyPosibleMovesForFigure(trialEnd, ref newWhitePossibleMoves, ref newBlackPossibleMoves);
                         break;
                     }
-                    trialEnd = Vector.Sum(trialEnd, direction);
+                    trialEnd = VectorMath.Sum(trialEnd, direction);
                 }
             }
             trialEnd = start;
             foreach (Vector direction in knightMinTranslations)
             {
-                trialEnd = Vector.Sum(start, direction);
+                trialEnd = VectorMath.Sum(start, direction);
                 if (trialEnd.x < 8 && trialEnd.x >= 0 && trialEnd.y < 8 && trialEnd.y >= 0)
                 {
                     if (board[trialEnd.x, trialEnd.y] < 0)
@@ -400,9 +493,7 @@ namespace Chess
         }
         public void OutputBoard(bool toConsole = true)
         {
-            Console.WriteLine("-----------------------------------");
-            Console.WriteLine("--------------BOARD----------------");
-            Console.WriteLine("-----------------------------------");
+            
             for (int i = 7; i >= 0; i--)
             {
                 string line = "";
@@ -475,7 +566,7 @@ namespace Chess
                 Vector trialEnd = start;
                 for (int i = 1; i <= 7; i++)
                 {
-                    trialEnd = Vector.Sum(trialEnd, minTranslation);
+                    trialEnd = VectorMath.Sum(trialEnd, minTranslation);
                     if (trialEnd.x < 0 || trialEnd.x > 7 || trialEnd.y < 0 || trialEnd.y > 7)
                         break;
                     if (board[trialEnd.x, trialEnd.y] * figure == 0)
@@ -499,13 +590,13 @@ namespace Chess
                 ownKingPosition = whiteKingPosition;
             else
                 ownKingPosition = blackKingPosition;
-            vectorFromTheKing = Vector.Substract(figurePos, ownKingPosition);
+            vectorFromTheKing = VectorMath.Substract(figurePos, ownKingPosition);
             for(int i = 0; i < minTranslations.Count; i++)
             {
                 Vector direction = minTranslations[i];
-                if (Math.Abs(Vector.Cos(direction, vectorFromTheKing) - 1) < 0.01)
+                if (Math.Abs(VectorMath.Cos(direction, vectorFromTheKing) - 1) < 0.01)
                 {
-                    Vector trialEnd = Vector.Sum(figurePos, direction);
+                    Vector trialEnd = VectorMath.Sum(figurePos, direction);
                     while (trialEnd.x < 8 && trialEnd.x >= 0 && trialEnd.y < 8 && trialEnd.y >= 0)
                     {
                         if (board[trialEnd.x, trialEnd.y]!= 0)
@@ -521,7 +612,7 @@ namespace Chess
                             break;
 
                         }
-                        trialEnd = Vector.Sum(trialEnd, direction);
+                        trialEnd = VectorMath.Sum(trialEnd, direction);
                     }
                     break;
                 }
@@ -557,18 +648,18 @@ namespace Chess
                     //        output.Add(new Move(castlingMove.start, castlingMove.end));
                     break;
                 case 5:
-                    return FindAllFormalyPosibleMovesForLinearFigure(figure, start);
+                    output =  FindAllFormalyPosibleMovesForLinearFigure(figure, start);
                     break;
                 case 3:
-                    return FindAllFormalyPosibleMovesForLinearFigure(figure, start);
+                    output = FindAllFormalyPosibleMovesForLinearFigure(figure, start);
                     break;
                 case 9:
-                    return FindAllFormalyPosibleMovesForLinearFigure(figure, start);
+                    output = FindAllFormalyPosibleMovesForLinearFigure(figure, start);
                     break;
                 case 2:
                     foreach (Vector posibleTranslation in knightMinTranslations)
                     {
-                        trialEnd = Vector.Sum(start, posibleTranslation);
+                        trialEnd = VectorMath.Sum(start, posibleTranslation);
                         if (trialEnd.x < 0 || trialEnd.x > 7 || trialEnd.y < 0 || trialEnd.y > 7)
                             continue;
                         if (board[trialEnd.x, trialEnd.y] * figure <= 0)
@@ -602,37 +693,58 @@ namespace Chess
                 default: break;
             }
             if (figure > 0)
-                newWhiteMoves.Add(start, output);
+            {
+                if(!newWhiteMoves.ContainsKey(start))
+                    newWhiteMoves.Add(start, output);
+            }
             else
-                newBlackMoves.Add(start, output);
+            {
+                if (!newBlackMoves.ContainsKey(start))
+                    newBlackMoves.Add(start, output);
+            }
             return output;
+        }
+        private void ExcludeForbidenMovesForKingsFromPossibleMovesWithCheckCheck()
+        {
+            List<Move> whiteKingPossibleMoves = whitePossibleMovesWithoutCheckCheck[whiteKingPosition];
+            foreach(Move m in whiteKingPossibleMoves)
+            {
+                if (!ChessLibrary.ThereIsNoCheckAfterThisMove(m, board))
+                    whitePossibleMovesWithCheckCheck.Remove(m);
+            }
+            List<Move> blackKingPossibleMoves = blackPossibleMovesWithoutCheckCheck[blackKingPosition];
+            foreach (Move m in blackKingPossibleMoves)
+            {
+                if (!ChessLibrary.ThereIsNoCheckAfterThisMove(m, board))
+                    blackPossibleMovesWithCheckCheck.Remove(m);
+            }
         }
         private void OutputAllPossibleMoves(bool forWhite)
         {
             //List<Move> moves = FindAllPosibleMoves(forWhite, position, castlingPosibilityFromHistory, pawnsOnlyCapture);
             Console.WriteLine("/-----------------------------------------/");
-           Console.WriteLine("/------------POSSIBLE MOVES----------------/");
+            Console.WriteLine("/------------POSSIBLE MOVES----------------/");
             Console.WriteLine("/-----------------------------------------/");
             List<Move> list = new List<Move>();
             if (forWhite)
             {
-                foreach (Vector v in whitePossibleMovesWithCheckCheck.Keys)
-                    foreach (Move m in whitePossibleMovesWithCheckCheck[v])
-                        list.Add(m);
+                foreach (Move m in whitePossibleMovesWithCheckCheck)
+                    list.Add(m);
             }
             else
             {
-                foreach (Vector v in blackPossibleMovesWithCheckCheck.Keys)
-                    foreach (Move m in blackPossibleMovesWithCheckCheck[v])
-                        list.Add(m);
+                foreach (Move m in blackPossibleMovesWithCheckCheck)
+                    list.Add(m);
             }
             foreach (Move move in list)
             {
+                Console.WriteLine(OutputHumanMove(move));
                 Vector end = move.end;
                 Vector start = move.start;
                 int endFigure = board[end.x, end.y];
                 board[end.x, end.y] = board[start.x, start.y];
                 board[start.x, start.y] = 0;
+                
                 OutputBoard();
                 board[start.x, start.y] = board[end.x, end.y];
                 board[end.x, end.y] = endFigure;
@@ -644,14 +756,15 @@ namespace Chess
             List<Move> blackInitialMoves = ChessLibrary.FindAllPosibleMoves(false, board, new bool[] { true, true, true, true });
             foreach(Move whiteMove in whiteInitialMoves)
             {
-                whitePossibleMovesWithCheckCheck[new Vector(whiteMove.start.x, whiteMove.start.y)].Add(whiteMove);
+                whitePossibleMovesWithCheckCheck.Add(whiteMove);
                 whitePossibleMovesWithoutCheckCheck[new Vector(whiteMove.start.x, whiteMove.start.y)].Add(whiteMove);
             }
             foreach (Move blackMove in blackInitialMoves)
             {
-                blackPossibleMovesWithCheckCheck[new Vector(blackMove.start.x, blackMove.start.y)].Add(blackMove);
+                blackPossibleMovesWithCheckCheck.Add(blackMove);
                 blackPossibleMovesWithoutCheckCheck[new Vector(blackMove.start.x, blackMove.start.y)].Add(blackMove);
             }
+            ChangeAllPossibleMovesWithCheckCorrectionAfterRecentMove();
         }
     }
 }

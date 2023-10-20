@@ -71,4 +71,5 @@ namespace Chess
             Console.ReadLine();
         }
     }
+
 }
