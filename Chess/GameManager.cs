@@ -109,8 +109,9 @@ namespace Chess
                     writer.WriteLine("------------------------------");
                     writer.WriteLine("Compters mive");
                 }
-              
-                Move computersMove = chessComputer.FindTheBestMoveForPosition(board, whiteToTurn);
+
+                // Move computersMove = chessComputer.FindTheBestMoveForPosition(board, whiteToTurn);
+                Move computersMove = new Move();
                 Console.WriteLine(OutputHumanMove(computersMove));
 
                 ChessLibrary.InputMove(computersMove, board,ref whiteToTurn,ref gameResult,ref castlingPosibilityFromHistory);
@@ -152,7 +153,8 @@ namespace Chess
 
             if (((whiteToTurn && !HumanAsWhite) || (!whiteToTurn && HumanAsWhite)) && GameMode == GameMode.AgainstComputer)
             {
-                Move computersMove = chessComputer.FindTheBestMoveForPosition(board, whiteToTurn);
+                //Move computersMove = chessComputer.FindTheBestMoveForPosition(board, whiteToTurn);
+                Move computersMove = new Move();
                 Console.WriteLine(OutputHumanMove(computersMove));
                 ChessLibrary.InputMove(computersMove, board, ref whiteToTurn, ref gameResult, ref castlingPosibilityFromHistory);
                 

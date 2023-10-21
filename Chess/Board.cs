@@ -4,12 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 namespace Chess
 {
+    [Serializable]
     class Board
     {
         //-------------------PUBLIC----------------------------//
+       // Stack<Board> boardHistory;
         public int[,] board { get; private set; }
         public bool HumanAsWhite { get; private set; } = true;
         public Result? GameResult
@@ -43,11 +47,16 @@ namespace Chess
         private Dictionary<Vector, List<Move>> whitePossibleMovesWithoutCheckCheck;
         private Dictionary<Vector, List<Move>> blackPossibleMovesWithoutCheckCheck;
 
-        private List<Move> whitePossibleMovesWithCheckCheck;
-        private List<Move> blackPossibleMovesWithCheckCheck;
+        public List<Move> whitePossibleMovesWithCheckCheck { get; private set; }
+        public List<Move> blackPossibleMovesWithCheckCheck { get; private set; }
 
         private List<Vector> checkSourcesForWhite;
         private List<Vector> checkSourcesForBlack;
+
+        List<Move> movesToRemove;
+
+        Dictionary<Vector, List<Move>> newWhitePossibleMoves;
+        Dictionary<Vector, List<Move>> newBlackPossibleMoves;
 
         //private Dictionary<Vector, int[]> hitMap;
 
@@ -79,7 +88,7 @@ namespace Chess
         {
             GameMode = gameMode;
             HumanAsWhite = humanAsWhite;
-            writer = new StreamWriter(File.Create("log_board.txt"));
+            writer = new StreamWriter(File.Create("log_board3.txt"));
             whiteToTurn = true;
             gameResult = null;
             whitePossibleMovesWithoutCheckCheck = new Dictionary<Vector, List<Move>>();
@@ -88,6 +97,10 @@ namespace Chess
             blackPossibleMovesWithCheckCheck = new List<Move>();
             checkSourcesForWhite = new List<Vector>();
             checkSourcesForBlack = new List<Vector>();
+            newWhitePossibleMoves = new Dictionary<Vector, List<Move>>();
+            newBlackPossibleMoves = new Dictionary<Vector, List<Move>>();
+
+            movesToRemove = new List<Move>();
             minTranslations = new List<Vector>();
             minTranslations.Add(new Vector(0, 1));
             minTranslations.Add(new Vector(0, -1));
@@ -155,7 +168,7 @@ namespace Chess
                 board[i, 1] = 1;
                 board[i, 6] = -1;
             }
-            board = ChessLibrary.ReadPositionFromFile("pos4.txt");
+            board = ChessLibrary.ReadPositionFromFile("checkmate1.txt");
             //ChessLibrary.ThereIsNoCheckInThisPosition(false, board);
             Console.WriteLine("-----------------------------------");
             Console.WriteLine("--------------BOARD----------------");
@@ -180,6 +193,9 @@ namespace Chess
             ///UpdateHitmap();
             OutputAllPossibleMoves(true);
             OutputAllPossibleMoves(false);
+
+            //boardHistory = new Stack<Board>();
+            Console.WriteLine("Initialization completed");
             if (((whiteToTurn && !HumanAsWhite) || (!whiteToTurn && HumanAsWhite)) && GameMode == GameMode.AgainstComputer)
             {
                 if (outputToLog)
@@ -188,7 +204,7 @@ namespace Chess
                     writer.WriteLine("Compters mive");
                 }
 
-                Move computersMove = chessComputer.FindTheBestMoveForPosition(board, whiteToTurn);
+                Move computersMove = chessComputer.FindTheBestMoveForPosition(this, whiteToTurn);
                 Console.WriteLine(OutputHumanMove(computersMove));
                 InputMove(computersMove);
             }
@@ -230,7 +246,7 @@ namespace Chess
 
             if (((whiteToTurn && !HumanAsWhite) || (!whiteToTurn && HumanAsWhite)) && GameMode == GameMode.AgainstComputer)
             {
-                Move computersMove = chessComputer.FindTheBestMoveForPosition(board, whiteToTurn);
+                Move computersMove = chessComputer.FindTheBestMoveForPosition(this, whiteToTurn);
                 Console.WriteLine(OutputHumanMove(computersMove));
                 InputMove(computersMove);
 
@@ -248,7 +264,7 @@ namespace Chess
             string output = figureLetter + startField + "-" + endField;
             return output;
         }
-        public bool InputMove(Move move, int figureToCreate=0)
+        public bool InputMove(Move move, int figureToCreate=9)
         {
             Vector startField = move.start;
             Vector endField = move.end;
@@ -352,7 +368,7 @@ namespace Chess
             if (CheckState != null)
             {
                 //Исключение ходов не избавляющих от шаха
-                List<Move> movesToRemove = new List<Move>();
+                movesToRemove.Clear();
                 //1. Hide
                 //2. Destroy
                 //3. Fence off
@@ -401,8 +417,8 @@ namespace Chess
         }
         private void ChangeAllFormalyPossibleMovesWithoutCheckCorrectionAfterRecentMove(Move move, bool whiteHadMoved)
         {
-            Dictionary<Vector, List<Move>> newWhitePossibleMoves = new Dictionary<Vector, List<Move>>();
-            Dictionary<Vector, List<Move>> newBlackPossibleMoves = new Dictionary<Vector, List<Move>>();
+            newWhitePossibleMoves.Clear();
+            newBlackPossibleMoves.Clear();
             //1. Change moves of figure that had moved
             if (whiteHadMoved)
             {
@@ -765,6 +781,31 @@ namespace Chess
                 blackPossibleMovesWithoutCheckCheck[new Vector(blackMove.start.x, blackMove.start.y)].Add(blackMove);
             }
             ChangeAllPossibleMovesWithCheckCorrectionAfterRecentMove();
+        }
+        /*public static T DeepClone<T>(this T obj)
+        {
+            using (var ms = new MemoryStream())
+            {
+                var formatter = new BinaryFormatter();
+                formatter.Serialize(ms, obj);
+                ms.Position = 0;
+
+                return (T)formatter.Deserialize(ms);
+            }
+        }*/
+    }
+    public static class ExtensionMethods
+    {
+        // Deep clone
+        public static T DeepClone<T>(this T a)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(stream, a);
+                stream.Position = 0;
+                return (T)formatter.Deserialize(stream);
+            }
         }
     }
 }

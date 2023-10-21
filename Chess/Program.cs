@@ -30,7 +30,7 @@ namespace Chess
                     humanIsPlayingAsWhite = false;
             }
 
-            GameManager gameManager = new GameManager(gameMode,humanIsPlayingAsWhite);
+            //GameManager gameManager = new GameManager(gameMode,humanIsPlayingAsWhite);
             Board board = new Board(gameMode, humanIsPlayingAsWhite);
             string inputMove;
             while (board.GameResult == null)
