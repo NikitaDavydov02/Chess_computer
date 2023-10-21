@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-
 namespace Chess
 {
     class ChessComputer
@@ -14,7 +13,7 @@ namespace Chess
             //testBoard = new Board(GameMode.TwoPlayers);
         }
         Random random = new Random();
-        static StreamWriter streamWriter = new StreamWriter(File.Create("computations2.txt"));
+        static StreamWriter streamWriter = new StreamWriter(File.Create("computations3.txt"));
         Board testBoard;
         public void Quit()
         {
@@ -58,24 +57,65 @@ namespace Chess
             else
                 possibleMoves = board.blackPossibleMovesWithCheckCheck;
             bestMove = possibleMoves[0];
-            if (depth ==8)
+            if (depth ==6)
             {
                 //Final estimation
 
-                return MaterialEstimation(board.board);
+                return EstimateFinalPosition(board);
             }
-            string s = "max";
+            string s = " max";
             if (!max)
-                s = "min";
-            streamWriter.WriteLine(indent + "Limit for none" + limitEstimation.ToString() +  "find " + s);
+                s = " min";
+            //streamWriter.WriteLine(indent + "Limit for none " + limitEstimation.ToString() +  " find " + s);
             //List<Move> possibleMoves = ChessLibrary.FindAllPosibleMoves(forWhite, position, _castlingPosibilityFromHistory);
 
-            double totalEstimation = 0;
+            //double totalEstimation = 0;
             double maxEstimation = -100;
             double minEstimation = 100;
+            //preliminary estimation
+            Dictionary<Board, double> preliminaryEstimations = new Dictionary<Board, double>();
             for (int i = 0; i < possibleMoves.Count; i++)
             {
-                int figure = board.board[possibleMoves[i].start.x, possibleMoves[i].start.y];
+                Board newBoard = ExtensionMethods.DeepClone<Board>(board);
+                newBoard.InputMove(possibleMoves[i]);
+                Result? GameResult = newBoard.GameResult;
+                double preliminaryEstimation = 0;
+                if (GameResult != null)
+                {
+                    if (GameResult == Result.Draw)
+                        preliminaryEstimation = 0;
+                    else if (GameResult == Result.WhiteWon)
+                    {
+                        preliminaryEstimation = 100;
+                        if(max)
+                            bestMove = possibleMoves[i];
+                    }
+                    else if (GameResult == Result.BloackWon)
+                    {
+                        preliminaryEstimation = -100;
+                        if(!max)
+                            bestMove = possibleMoves[i];
+                    }
+                    //OutputBoard(board);
+                    return preliminaryEstimation;
+                }
+                preliminaryEstimation = EstimateFinalPosition(newBoard);
+                preliminaryEstimations.Add(newBoard, preliminaryEstimation);
+            }
+            if (!max)
+            {
+                foreach (Board b in preliminaryEstimations.Keys)
+                    preliminaryEstimations[b] *= -1;
+            }
+            //Sort preliminary estimations
+            foreach (KeyValuePair<Board, double> item in preliminaryEstimations.OrderByDescending(value=>value.Values))
+            {
+                // do something with item.Key and item.Value
+            }
+
+            for (int i = 0; i < possibleMoves.Count; i++)
+            {
+                //int figure = board.board[possibleMoves[i].start.x, possibleMoves[i].start.y];
                 //Board newBoard = Board.DeepClone<Board>(board);
                 Board newBoard = ExtensionMethods.DeepClone<Board>(board);
                 newBoard.InputMove(possibleMoves[i]);
@@ -95,6 +135,7 @@ namespace Chess
                     {
                         moveEstimation = -100;
                     }
+                   
                     //OutputBoard(board);
                 }
                 else
@@ -117,8 +158,8 @@ namespace Chess
                         bestMove = possibleMoves[i];
                         if (moveEstimation > limitEstimation||moveEstimation==100)
                         {
-                            string logString2 = ChessLibrary.OutputHumanMove(possibleMoves[i], figure);
-                            streamWriter.WriteLine(indent + logString2 + "(" + moveEstimation.ToString() + ")*");
+                            //string logString2 = ChessLibrary.OutputHumanMove(possibleMoves[i], figure);
+                            //streamWriter.WriteLine(indent + logString2 + "(" + moveEstimation.ToString() + ")*");
                             return moveEstimation;
 
                         }
@@ -132,16 +173,16 @@ namespace Chess
                         bestMove = possibleMoves[i];
                         if (moveEstimation < limitEstimation || moveEstimation == -100)
                         {
-                            string logString2 = ChessLibrary.OutputHumanMove(possibleMoves[i], figure);
-                            streamWriter.WriteLine(indent + logString2 + "(" + moveEstimation.ToString() + ")*");
+                            //string logString2 = ChessLibrary.OutputHumanMove(possibleMoves[i], figure);
+                            //streamWriter.WriteLine(indent + logString2 + "(" + moveEstimation.ToString() + ")*");
                             return moveEstimation;
                         }
                         
                     }
                 }
                 //totalEstimation += moveEstimation;
-                string logString = ChessLibrary.OutputHumanMove(possibleMoves[i], figure);
-                streamWriter.WriteLine(indent + logString + "(" + moveEstimation.ToString() + ")");
+                //string logString = ChessLibrary.OutputHumanMove(possibleMoves[i], figure);
+                //streamWriter.WriteLine(indent + logString + "(" + moveEstimation.ToString() + ")");
             }
             if (max)
                 return maxEstimation;
@@ -279,6 +320,16 @@ namespace Chess
                 for (int j = 0; j < 8; j++)
                     output += position[i, j];
             return output;
+        }
+        private double EstimateAreaSuperior(Board board)
+        {
+            double whitePossibleMoves = board.whitePossibleMovesWithCheckCheck.Count;
+            double blackPossibleMoves = board.blackPossibleMovesWithCheckCheck.Count;
+            return whitePossibleMoves - blackPossibleMoves;
+        }
+        private double EstimateFinalPosition(Board board)
+        {
+            return (MaterialEstimation(board.board)+EstimateAreaSuperior(board));
         }
     }
     public enum MoveType
