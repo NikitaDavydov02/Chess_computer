@@ -14,7 +14,7 @@ namespace Chess
             //testBoard = new Board(GameMode.TwoPlayers);
         }
         Random random = new Random();
-        static StreamWriter streamWriter = new StreamWriter(File.Create("computations.txt"));
+        static StreamWriter streamWriter = new StreamWriter(File.Create("computations2.txt"));
         Board testBoard;
         public void Quit()
         {
@@ -51,23 +51,28 @@ namespace Chess
             string indent = "";
             for (int i = 0; i < depth; i++)
                 indent += "    ";
+            
             List<Move> possibleMoves;
             if (max)
                 possibleMoves = board.whitePossibleMovesWithCheckCheck;
             else
                 possibleMoves = board.blackPossibleMovesWithCheckCheck;
             bestMove = possibleMoves[0];
-            if (depth == 2)
+            if (depth ==8)
             {
                 //Final estimation
 
                 return MaterialEstimation(board.board);
             }
+            string s = "max";
+            if (!max)
+                s = "min";
+            streamWriter.WriteLine(indent + "Limit for none" + limitEstimation.ToString() +  "find " + s);
             //List<Move> possibleMoves = ChessLibrary.FindAllPosibleMoves(forWhite, position, _castlingPosibilityFromHistory);
 
             double totalEstimation = 0;
-            double maxEstimation = -10;
-            double minEstimation = 10;
+            double maxEstimation = -100;
+            double minEstimation = 100;
             for (int i = 0; i < possibleMoves.Count; i++)
             {
                 int figure = board.board[possibleMoves[i].start.x, possibleMoves[i].start.y];
@@ -110,7 +115,7 @@ namespace Chess
                     if (max)
                     {
                         bestMove = possibleMoves[i];
-                        if (moveEstimation > limitEstimation)
+                        if (moveEstimation > limitEstimation||moveEstimation==100)
                         {
                             string logString2 = ChessLibrary.OutputHumanMove(possibleMoves[i], figure);
                             streamWriter.WriteLine(indent + logString2 + "(" + moveEstimation.ToString() + ")*");
@@ -125,7 +130,7 @@ namespace Chess
                     if (!max)
                     {
                         bestMove = possibleMoves[i];
-                        if (moveEstimation < limitEstimation)
+                        if (moveEstimation < limitEstimation || moveEstimation == -100)
                         {
                             string logString2 = ChessLibrary.OutputHumanMove(possibleMoves[i], figure);
                             streamWriter.WriteLine(indent + logString2 + "(" + moveEstimation.ToString() + ")*");

@@ -29,7 +29,7 @@ namespace Chess
         private Result? gameResult = null;
         public GameMode GameMode { get; private set; }
 
-        private ChessComputer chessComputer;
+        //private ChessComputer chessComputer;
         //-------------------STAFF----------------------------//
         private Vector whiteKingPosition;
         private Vector blackKingPosition;
@@ -60,7 +60,7 @@ namespace Chess
 
         //private Dictionary<Vector, int[]> hitMap;
 
-        private CheckState? CheckState=null;
+        public CheckState? CheckState { get; private set; } = null;
 
         //private bool[] castlingPosibilityFromHistory;
         //private List<Move> castlingMoves = new List<Move>();
@@ -77,15 +77,15 @@ namespace Chess
         public Board(GameMode gameMode, bool humanAsWhite = true)
         {
             
-            chessComputer = new ChessComputer();
+            //chessComputer = new ChessComputer();
             Init(gameMode, humanAsWhite);
         }
         public void Quit()
         {
            // writer.Close();
-            chessComputer.Quit();
+            //chessComputer.Quit();
         }
-        private void Init(GameMode gameMode, bool humanAsWhite = true)
+        private void Init(GameMode gameMode,bool humanAsWhite = true)
         {
             GameMode = gameMode;
             HumanAsWhite = humanAsWhite;
@@ -169,11 +169,9 @@ namespace Chess
                 board[i, 1] = 1;
                 board[i, 6] = -1;
             }
-            board = ChessLibrary.ReadPositionFromFile("checkmate1.txt");
+            board = ChessLibrary.ReadPositionFromFile("checkmate3.txt");
             //ChessLibrary.ThereIsNoCheckInThisPosition(false, board);
-            Console.WriteLine("-----------------------------------");
-            Console.WriteLine("--------------BOARD----------------");
-            Console.WriteLine("-----------------------------------");
+            
             OutputBoard();
             for (int i = 0; i < 8; i++)
                 for (int j = 0; j < 8; j++)
@@ -192,23 +190,19 @@ namespace Chess
             InitialMoveFinding();
             //hitMap = new Dictionary<Vector, int[]>();
             ///UpdateHitmap();
-            OutputAllPossibleMoves(true);
-            OutputAllPossibleMoves(false);
+            ///
+
+            //OutputAllPossibleMoves(true);
+            //OutputAllPossibleMoves(false);
 
             //boardHistory = new Stack<Board>();
             Console.WriteLine("Initialization completed");
-            if (((whiteToTurn && !HumanAsWhite) || (!whiteToTurn && HumanAsWhite)) && GameMode == GameMode.AgainstComputer)
+           /* if (((whiteToTurn && !HumanAsWhite) || (!whiteToTurn && HumanAsWhite)) && GameMode == GameMode.AgainstComputer)
             {
-                /*if (outputToLog)
-                {
-                    writer.WriteLine("------------------------------");
-                    writer.WriteLine("Compters mive");
-                }*/
-
                 Move computersMove = chessComputer.FindTheBestMoveForPosition(this, whiteToTurn);
                 Console.WriteLine(OutputHumanMove(computersMove));
                 InputMove(computersMove);
-            }
+            }*/
         }
         public bool InputHumanMove(string figureType, string startField, string finishField)
         {
@@ -245,13 +239,13 @@ namespace Chess
                 return false;
             }
 
-            if (((whiteToTurn && !HumanAsWhite) || (!whiteToTurn && HumanAsWhite)) && GameMode == GameMode.AgainstComputer)
+           /* if (((whiteToTurn && !HumanAsWhite) || (!whiteToTurn && HumanAsWhite)) && GameMode == GameMode.AgainstComputer)
             {
                 Move computersMove = chessComputer.FindTheBestMoveForPosition(this, whiteToTurn);
                 Console.WriteLine(OutputHumanMove(computersMove));
                 InputMove(computersMove);
 
-            }
+            }*/
             return true;
         }
         private string OutputHumanMove(Move move)
@@ -312,8 +306,8 @@ namespace Chess
             ChangeAllFormalyPossibleMovesWithoutCheckCorrectionAfterRecentMove(move, whiteToTurn);
             //Check correction
             ChangeAllPossibleMovesWithCheckCorrectionAfterRecentMove();
-            OutputAllPossibleMoves(true);
-            OutputAllPossibleMoves(false);
+            //OutputAllPossibleMoves(true);
+            //OutputAllPossibleMoves(false);
             //MoveType moveType = DetermineMoveType(figure, startField, endField, board);
 
             gameResult = CheckMate(WhiteToTurn);
@@ -325,20 +319,16 @@ namespace Chess
                     Console.WriteLine("White won!");
                 else if (GameResult == Result.BloackWon)
                     Console.WriteLine("Black won!");
-                Console.WriteLine("-----------------------------------");
-                Console.WriteLine("--------------BOARD----------------");
-                Console.WriteLine("-----------------------------------");
-                OutputBoard();
                 return true;
             }
-            if (CheckState==Chess.CheckState.WhiteAreChecked||CheckState==Chess.CheckState.WhiteAreDoubleChecked)
+
+            /*Console.WriteLine("-----------------------------------");
+            Console.WriteLine("--------------BOARD----------------");
+            Console.WriteLine("-----------------------------------");*/
+            if (CheckState == Chess.CheckState.WhiteAreChecked || CheckState == Chess.CheckState.WhiteAreDoubleChecked)
                 Console.WriteLine("White are checked");
             if (CheckState == Chess.CheckState.BlackAreChecked || CheckState == Chess.CheckState.BlackAreDoubleChecked)
                 Console.WriteLine("Black are checked");
-            Console.WriteLine("-----------------------------------");
-            Console.WriteLine("--------------BOARD----------------");
-            Console.WriteLine("-----------------------------------");
-            OutputBoard();
             whiteToTurn = !whiteToTurn;
 
             return true;
@@ -382,10 +372,10 @@ namespace Chess
                         if (VectorMath.Equal(move.start, whiteKingPosition))
                             hide = true;
                         bool destroy = false;
-                        if (VectorMath.Equal(move.end, checkSourcesForWhite[0]) && checkSourcesForWhite.Count == 0)
+                        if (VectorMath.Equal(move.end, checkSourcesForWhite[0]) && checkSourcesForWhite.Count == 1)
                             destroy = true;
                         bool fenceOff = false;
-                        if (VectorMath.CBetweenAAndB(whiteKingPosition, checkSourcesForWhite[0], move.end) && checkSourcesForWhite.Count == 0)
+                        if (VectorMath.CBetweenAAndB(whiteKingPosition, checkSourcesForWhite[0], move.end) && checkSourcesForWhite.Count == 1)
                             fenceOff = false;
                         if (!(hide || destroy || fenceOff))
                             movesToRemove.Add(move);
@@ -402,10 +392,10 @@ namespace Chess
                         if (VectorMath.Equal(move.start, blackKingPosition))
                             hide = true;
                         bool destroy = false;
-                        if (VectorMath.Equal(move.end, checkSourcesForBlack[0]) && checkSourcesForBlack.Count == 0)
+                        if (VectorMath.Equal(move.end, checkSourcesForBlack[0]) && checkSourcesForBlack.Count == 1)
                             destroy = true;
                         bool fenceOff = false;
-                        if (VectorMath.CBetweenAAndB(blackKingPosition, checkSourcesForBlack[0], move.end) && checkSourcesForBlack.Count == 0)
+                        if (VectorMath.CBetweenAAndB(blackKingPosition, checkSourcesForBlack[0], move.end) && checkSourcesForBlack.Count == 1)
                             fenceOff = false;
                         if (!(hide || destroy || fenceOff))
                             movesToRemove.Add(move);
@@ -510,7 +500,9 @@ namespace Chess
         }
         public void OutputBoard(bool toConsole = true)
         {
-            
+            Console.WriteLine("-----------------------------------");
+            Console.WriteLine("--------------BOARD----------------");
+            Console.WriteLine("-----------------------------------");
             for (int i = 7; i >= 0; i--)
             {
                 string line = "";

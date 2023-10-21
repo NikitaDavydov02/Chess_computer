@@ -32,41 +32,68 @@ namespace Chess
 
             //GameManager gameManager = new GameManager(gameMode,humanIsPlayingAsWhite);
             Board board = new Board(gameMode, humanIsPlayingAsWhite);
+            ChessComputer chessComputer = new ChessComputer();
             string inputMove;
             while (board.GameResult == null)
             {
+                
                 if (board.WhiteToTurn)
                     Console.WriteLine("White to turn");
                 else
                     Console.WriteLine("Black to turn");
-                inputMove = Console.ReadLine();
-                if (inputMove == "l")
+                if (((board.WhiteToTurn && !humanIsPlayingAsWhite)|| (!board.WhiteToTurn && humanIsPlayingAsWhite)) && gameMode == GameMode.AgainstComputer)
                 {
-                    board.Quit();
-                    break;
+                    //Computers move
+                    Move computersMove = chessComputer.FindTheBestMoveForPosition(board, board.WhiteToTurn);
+                    int f = board.board[computersMove.start.x, computersMove.start.y];
+                    Console.WriteLine(ChessLibrary.OutputHumanMove(computersMove,f));
+                    board.InputMove(computersMove);
+
                 }
-                   
-                List<char> inputMoveSplited = inputMove.ToList<char>();
-                string figure = "";
-                if (inputMoveSplited.Count > 5)
+                else
                 {
-                    figure = inputMoveSplited[0].ToString();
-                    inputMoveSplited.RemoveAt(0);
+                    //Human Move
+                    inputMove = Console.ReadLine();
+                    if (inputMove == "l")
+                    {
+                        board.Quit();
+                        chessComputer.Quit();
+                        break;
+                    }
+
+                    List<char> inputMoveSplited = inputMove.ToList<char>();
+                    string figure = "";
+                    if (inputMoveSplited.Count > 5)
+                    {
+                        figure = inputMoveSplited[0].ToString();
+                        inputMoveSplited.RemoveAt(0);
+                    }
+                    if (inputMoveSplited.Count < 5)
+                    {
+                        Console.WriteLine("Invalid input. Example: Qe2-e4");
+                        continue;
+                    }
+                    string startField = inputMoveSplited[0].ToString() + inputMoveSplited[1].ToString();
+                    string endField = inputMoveSplited[3].ToString() + inputMoveSplited[4].ToString();
+                    board.InputHumanMove(figure, startField, endField);
                 }
-                if (inputMoveSplited.Count < 5)
-                {
-                    Console.WriteLine("Invalid input. Example: Qe2-e4");
-                    continue;
-                }
-                string startField = inputMoveSplited[0].ToString() + inputMoveSplited[1].ToString();
-                string endField = inputMoveSplited[3].ToString() + inputMoveSplited[4].ToString();
-                board.InputHumanMove(figure, startField, endField);
+                board.OutputBoard();
+                if (board.CheckState == Chess.CheckState.WhiteAreChecked || board.CheckState == Chess.CheckState.WhiteAreDoubleChecked)
+                    Console.WriteLine("White are checked");
+                if (board.CheckState == Chess.CheckState.BlackAreChecked || board.CheckState == Chess.CheckState.BlackAreDoubleChecked)
+                    Console.WriteLine("Black are checked");
             }
-            inputMove = Console.ReadLine();
-            if (inputMove == "l")
+            if (board.GameResult == Result.Draw)
+                Console.WriteLine("Draw");
+            else if (board.GameResult == Result.WhiteWon)
+                Console.WriteLine("White won!");
+            else if (board.GameResult == Result.BloackWon)
+                Console.WriteLine("Black won!");
+            string input = Console.ReadLine();
+            if (input == "l")
             {
                 board.Quit();
-                
+                chessComputer.Quit();
             }
             Console.ReadLine();
         }

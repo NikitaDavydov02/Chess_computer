@@ -181,6 +181,7 @@ namespace Chess
         Draw,
         BloackWon,
     }
+    [Serializable]
     public struct Vector
     {
         public int x;
@@ -229,6 +230,7 @@ namespace Chess
             return false;
         }
     }
+    [Serializable]
     public struct Move
     {
         public Vector start;
