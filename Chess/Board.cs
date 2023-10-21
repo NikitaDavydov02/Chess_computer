@@ -68,7 +68,7 @@ namespace Chess
         //long white
         //short black
         //long white
-        StreamWriter writer;
+        //StreamWriter writer;
         bool outputToLog = true;
         List<Vector> minTranslations;
         List<Vector> knightMinTranslations;
@@ -76,19 +76,20 @@ namespace Chess
         
         public Board(GameMode gameMode, bool humanAsWhite = true)
         {
-            Init(gameMode,humanAsWhite);
+            
             chessComputer = new ChessComputer();
+            Init(gameMode, humanAsWhite);
         }
         public void Quit()
         {
-            writer.Close();
+           // writer.Close();
             chessComputer.Quit();
         }
         private void Init(GameMode gameMode, bool humanAsWhite = true)
         {
             GameMode = gameMode;
             HumanAsWhite = humanAsWhite;
-            writer = new StreamWriter(File.Create("log_board3.txt"));
+            //writer = new StreamWriter(File.Create("log_board3.txt"));
             whiteToTurn = true;
             gameResult = null;
             whitePossibleMovesWithoutCheckCheck = new Dictionary<Vector, List<Move>>();
@@ -198,11 +199,11 @@ namespace Chess
             Console.WriteLine("Initialization completed");
             if (((whiteToTurn && !HumanAsWhite) || (!whiteToTurn && HumanAsWhite)) && GameMode == GameMode.AgainstComputer)
             {
-                if (outputToLog)
+                /*if (outputToLog)
                 {
                     writer.WriteLine("------------------------------");
                     writer.WriteLine("Compters mive");
-                }
+                }*/
 
                 Move computersMove = chessComputer.FindTheBestMoveForPosition(this, whiteToTurn);
                 Console.WriteLine(OutputHumanMove(computersMove));

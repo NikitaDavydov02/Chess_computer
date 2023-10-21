@@ -57,7 +57,7 @@ namespace Chess
             else
                 possibleMoves = board.blackPossibleMovesWithCheckCheck;
             bestMove = possibleMoves[0];
-            if (depth == 6)
+            if (depth == 2)
             {
                 //Final estimation
 
