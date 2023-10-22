@@ -79,25 +79,59 @@ namespace Chess
             double minEstimation = 100;
             //preliminary estimation
             Dictionary<Board, double> preliminaryEstimations = new Dictionary<Board, double>();
+            Dictionary<Board, Move> boardVSMoves = new Dictionary<Board, Move>();
             for (int i = 0; i < possibleMoves.Count; i++)
             {
-                //int figure = board.board[possibleMoves[i].start.x, possibleMoves[i].start.y];
-                //Board newBoard = Board.DeepClone<Board>(board);
                 Board newBoard = ExtensionMethods.DeepClone<Board>(board);
                 newBoard.InputMove(possibleMoves[i]);
                 Result? GameResult = newBoard.GameResult;
-                double moveEstimation = 0;
+                double preliminaryEstimation = 0;
                 if (GameResult != null)
                 {
                     if (GameResult == Result.Draw)
                     {
-                        moveEstimation = 0;
+                        preliminaryEstimation = 0;
                     }
                     else if (GameResult == Result.WhiteWon)
                     {
-                        moveEstimation = 100;
+                        preliminaryEstimation = 100;
                     }
                     else if (GameResult == Result.BloackWon)
+                    {
+                        preliminaryEstimation = -100;
+                    }
+
+                    //OutputBoard(board);
+                }
+                else
+                {
+                    preliminaryEstimation = EstimateFinalPosition(newBoard);
+                }
+
+                preliminaryEstimations.Add(newBoard, preliminaryEstimation);
+                boardVSMoves.Add(newBoard, possibleMoves[i]);
+            }
+
+
+            foreach(Board b in preliminaryEstimations.Keys)
+            {
+                //int figure = board.board[possibleMoves[i].start.x, possibleMoves[i].start.y];
+                ////Board newBoard = Board.DeepClone<Board>(board);
+                //Board newBoard = ExtensionMethods.DeepClone<Board>(board);
+                //newBoard.InputMove(possibleMoves[i]);
+                //Result? GameResult = newBoard.GameResult;
+                double moveEstimation = 0;
+                if (b.GameResult != null)
+                {
+                    if (b.GameResult == Result.Draw)
+                    {
+                        moveEstimation = 0;
+                    }
+                    else if (b.GameResult == Result.WhiteWon)
+                    {
+                        moveEstimation = 100;
+                    }
+                    else if (b.GameResult == Result.BloackWon)
                     {
                         moveEstimation = -100;
                     }
@@ -113,7 +147,7 @@ namespace Chess
                         limitForNextStep = maxEstimation;
                     else
                         limitForNextStep = minEstimation;
-                    moveEstimation = FindMaxOrMinMove(newBoard, depth, !max, limitForNextStep, out bestContinuation);
+                    moveEstimation = FindMaxOrMinMove(b, depth, !max, limitForNextStep, out bestContinuation);
 
                 }
                 if (moveEstimation > maxEstimation)
@@ -121,7 +155,7 @@ namespace Chess
                     maxEstimation = moveEstimation;
                     if (max)
                     {
-                        bestMove = possibleMoves[i];
+                        bestMove = boardVSMoves[b];
                         if (moveEstimation > limitEstimation || moveEstimation == 100)
                         {
                             //string logString2 = ChessLibrary.OutputHumanMove(possibleMoves[i], figure);
@@ -136,7 +170,7 @@ namespace Chess
                     minEstimation = moveEstimation;
                     if (!max)
                     {
-                        bestMove = possibleMoves[i];
+                        bestMove = boardVSMoves[b];
                         if (moveEstimation < limitEstimation || moveEstimation == -100)
                         {
                             //string logString2 = ChessLibrary.OutputHumanMove(possibleMoves[i], figure);
