@@ -78,7 +78,8 @@ namespace Chess
             double maxEstimation = -100;
             double minEstimation = 100;
             //preliminary estimation
-            Dictionary<Board, double> preliminaryEstimations = new Dictionary<Board, double>();
+            //Dictionary<Board, double> preliminaryEstimations = new Dictionary<Board, double>();
+            List<KeyValuePair<Board, double>> preliminaryEstimations = new List<KeyValuePair<Board, double>>();
             Dictionary<Board, Move> boardVSMoves = new Dictionary<Board, Move>();
             for (int i = 0; i < possibleMoves.Count; i++)
             {
@@ -107,19 +108,23 @@ namespace Chess
                 {
                     preliminaryEstimation = EstimateFinalPosition(newBoard);
                 }
-
-                preliminaryEstimations.Add(newBoard, preliminaryEstimation);
+                preliminaryEstimations.Add(new KeyValuePair<Board, double>(newBoard, preliminaryEstimation));
+                //preliminaryEstimations.Add(newBoard, preliminaryEstimation);
                 boardVSMoves.Add(newBoard, possibleMoves[i]);
             }
+            if(!max)
+                preliminaryEstimations.Sort((x, y) => x.Value.CompareTo(y.Value));
+            else
+                preliminaryEstimations.Sort((x, y) => y.Value.CompareTo(x.Value));
 
-
-            foreach(Board b in preliminaryEstimations.Keys)
+            foreach (KeyValuePair<Board,double> keyValuePair  in preliminaryEstimations)
             {
                 //int figure = board.board[possibleMoves[i].start.x, possibleMoves[i].start.y];
                 ////Board newBoard = Board.DeepClone<Board>(board);
                 //Board newBoard = ExtensionMethods.DeepClone<Board>(board);
                 //newBoard.InputMove(possibleMoves[i]);
                 //Result? GameResult = newBoard.GameResult;
+                Board b = keyValuePair.Key;
                 double moveEstimation = 0;
                 if (b.GameResult != null)
                 {
@@ -331,8 +336,8 @@ namespace Chess
         }
         private double EstimateFinalPosition(Board board)
         {
-            //return (MaterialEstimation(board.board)+EstimateAreaSuperior(board));
-            return (MaterialEstimation(board.board));
+            return (MaterialEstimation(board.board)+EstimateAreaSuperior(board));
+            //return (MaterialEstimation(board.board));
         }
     }
     public enum MoveType
