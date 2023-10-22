@@ -13,7 +13,7 @@ namespace Chess
             //testBoard = new Board(GameMode.TwoPlayers);
         }
         Random random = new Random();
-        static StreamWriter streamWriter = new StreamWriter(File.Create("computations3.txt"));
+        static StreamWriter streamWriter = new StreamWriter(File.Create("computations2.txt"));
         Board testBoard;
         public void Quit()
         {
@@ -56,6 +56,11 @@ namespace Chess
                 possibleMoves = board.whitePossibleMovesWithCheckCheck;
             else
                 possibleMoves = board.blackPossibleMovesWithCheckCheck;
+            if (possibleMoves.Count == 0)
+            {
+                bestMove = new Move();
+                return 0;
+            }
             bestMove = possibleMoves[0];
             if (depth ==6)
             {
@@ -74,44 +79,7 @@ namespace Chess
             double minEstimation = 100;
             //preliminary estimation
             Dictionary<Board, double> preliminaryEstimations = new Dictionary<Board, double>();
-            for (int i = 0; i < possibleMoves.Count; i++)
-            {
-                Board newBoard = ExtensionMethods.DeepClone<Board>(board);
-                newBoard.InputMove(possibleMoves[i]);
-                Result? GameResult = newBoard.GameResult;
-                double preliminaryEstimation = 0;
-                if (GameResult != null)
-                {
-                    if (GameResult == Result.Draw)
-                        preliminaryEstimation = 0;
-                    else if (GameResult == Result.WhiteWon)
-                    {
-                        preliminaryEstimation = 100;
-                        if(max)
-                            bestMove = possibleMoves[i];
-                    }
-                    else if (GameResult == Result.BloackWon)
-                    {
-                        preliminaryEstimation = -100;
-                        if(!max)
-                            bestMove = possibleMoves[i];
-                    }
-                    //OutputBoard(board);
-                    return preliminaryEstimation;
-                }
-                preliminaryEstimation = EstimateFinalPosition(newBoard);
-                preliminaryEstimations.Add(newBoard, preliminaryEstimation);
-            }
-            if (!max)
-            {
-                foreach (Board b in preliminaryEstimations.Keys)
-                    preliminaryEstimations[b] *= -1;
-            }
-            //Sort preliminary estimations
-            foreach (KeyValuePair<Board, double> item in preliminaryEstimations.OrderByDescending(value=>value.Values))
-            {
-                // do something with item.Key and item.Value
-            }
+           
 
             for (int i = 0; i < possibleMoves.Count; i++)
             {
@@ -135,7 +103,7 @@ namespace Chess
                     {
                         moveEstimation = -100;
                     }
-                   
+
                     //OutputBoard(board);
                 }
                 else
@@ -156,7 +124,7 @@ namespace Chess
                     if (max)
                     {
                         bestMove = possibleMoves[i];
-                        if (moveEstimation > limitEstimation||moveEstimation==100)
+                        if (moveEstimation > limitEstimation || moveEstimation == 100)
                         {
                             //string logString2 = ChessLibrary.OutputHumanMove(possibleMoves[i], figure);
                             //streamWriter.WriteLine(indent + logString2 + "(" + moveEstimation.ToString() + ")*");
@@ -177,7 +145,7 @@ namespace Chess
                             //streamWriter.WriteLine(indent + logString2 + "(" + moveEstimation.ToString() + ")*");
                             return moveEstimation;
                         }
-                        
+
                     }
                 }
                 //totalEstimation += moveEstimation;
@@ -329,7 +297,8 @@ namespace Chess
         }
         private double EstimateFinalPosition(Board board)
         {
-            return (MaterialEstimation(board.board)+EstimateAreaSuperior(board));
+            //return (MaterialEstimation(board.board)+EstimateAreaSuperior(board));
+            return (MaterialEstimation(board.board));
         }
     }
     public enum MoveType

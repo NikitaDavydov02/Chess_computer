@@ -169,7 +169,7 @@ namespace Chess
                 board[i, 1] = 1;
                 board[i, 6] = -1;
             }
-            board = ChessLibrary.ReadPositionFromFile("checkmate3.txt");
+            board = ChessLibrary.ReadPositionFromFile("checkmate2.txt");
             //ChessLibrary.ThereIsNoCheckInThisPosition(false, board);
             
             OutputBoard();
