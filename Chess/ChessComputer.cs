@@ -62,7 +62,7 @@ namespace Chess
                 return 0;
             }
             bestMove = possibleMoves[0];
-            if (depth ==6)
+            if (depth ==4)
             {
                 //Final estimation
 
@@ -71,7 +71,7 @@ namespace Chess
             string s = " max";
             if (!max)
                 s = " min";
-            //streamWriter.WriteLine(indent + "Limit for none " + limitEstimation.ToString() +  " find " + s);
+            streamWriter.WriteLine(indent + "Limit for none " + limitEstimation.ToString() +  " find " + s);
             //List<Move> possibleMoves = ChessLibrary.FindAllPosibleMoves(forWhite, position, _castlingPosibilityFromHistory);
 
             //double totalEstimation = 0;
@@ -79,8 +79,6 @@ namespace Chess
             double minEstimation = 100;
             //preliminary estimation
             Dictionary<Board, double> preliminaryEstimations = new Dictionary<Board, double>();
-           
-
             for (int i = 0; i < possibleMoves.Count; i++)
             {
                 //int figure = board.board[possibleMoves[i].start.x, possibleMoves[i].start.y];
@@ -152,6 +150,8 @@ namespace Chess
                 //string logString = ChessLibrary.OutputHumanMove(possibleMoves[i], figure);
                 //streamWriter.WriteLine(indent + logString + "(" + moveEstimation.ToString() + ")");
             }
+
+
             if (max)
                 return maxEstimation;
             else
